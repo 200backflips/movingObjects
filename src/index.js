@@ -1,92 +1,77 @@
-const readline = require("readline");
-const clear = require("clear");
-const chalk = require("chalk");
-const figlet = require("figlet");
-const { moveForward, moveBackwards } = require("./movement");
-const { validateInput, printResult } = require("./helpers");
+const readline = require('readline');
+const clear = require('clear');
+const chalk = require('chalk');
+const figlet = require('figlet');
 const {
   inputSize,
   inputStartingPosition,
   inputMovements,
-} = require("./inputText");
+} = require('./inputText');
+const { validateInput, printResult } = require('./helpers');
+const {
+  moveForward,
+  moveBackwards,
+  rotateClockwise,
+  rotateCounterClockwise,
+} = require('./movement');
+const { state } = require('./state');
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-const sizeOfTable = [];
-const currentPosition = [];
-let currentDirection = 0;
-let responseText = "";
-let TableSizeError = "";
-let startingPointError = "";
-
-const recursiveReadline = () => {
+(recursiveReadline = () => {
   clear();
   console.log(
     chalk.cyanBright(
-      figlet.textSync("moving\nobjects\n", { horizontalLayout: "full" })
+      figlet.textSync('moving\nobjects\n', { horizontalLayout: 'full' })
     )
   );
-  if (sizeOfTable.length < 2) {
-    inputSize(TableSizeError);
-    rl.question("  answer: ", (input) => {
-      validateInput(input, sizeOfTable);
-      TableSizeError = "something went wrong, please try again.";
+  console.log(state);
+  if (state.sizeOfTable.length < 2) {
+    inputSize();
+    rl.question('  answer: ', (input) => {
+      validateInput(input, state.sizeOfTable);
       recursiveReadline();
     });
-  } else if (currentPosition.length < 2) {
-    inputStartingPosition(startingPointError);
-    rl.question("  answer: ", (input) => {
-      validateInput(input, currentPosition);
-      startingPointError = "something went wrong, please try again.";
+  } else if (state.currentPosition.length < 2) {
+    inputStartingPosition();
+    rl.question('  answer: ', (input) => {
+      validateInput(input, state.currentPosition);
       recursiveReadline();
     });
   } else {
-    inputMovements(responseText);
-    rl.question("  answer: ", (input) => {
+    inputMovements();
+    rl.question('  answer: ', (input) => {
       switch (+input) {
         case 0:
-          printResult(currentPosition, sizeOfTable, rl);
+          printResult();
+          rl.close();
           break;
         case 1:
-          moveForward(currentDirection, currentPosition);
-          responseText = "you moved one step forward";
+          moveForward();
           recursiveReadline();
           break;
         case 2:
-          moveBackwards(currentDirection, currentPosition);
-          responseText = "you moved one step backwards";
+          moveBackwards();
           recursiveReadline();
           break;
         case 3:
-          if (currentDirection < 3) {
-            currentDirection++;
-          } else {
-            currentDirection = 0;
-          }
-          responseText = "you rotated 90° clockwise";
+          rotateClockwise();
           recursiveReadline();
           break;
         case 4:
-          if (currentDirection > 0) {
-            currentDirection--;
-          } else {
-            currentDirection = 3;
-          }
-          responseText = "you rotated 90° counter clockwise";
+          rotateCounterClockwise();
           recursiveReadline();
           break;
         default:
-          responseText = "please enter a number between 0-4";
+          state.responseText = 'please enter a number between 0-4';
           recursiveReadline();
           break;
       }
     });
   }
-};
+})();
 
-rl.on("close", () => process.exit(0));
-
-recursiveReadline();
+rl.on('close', () => process.exit(0));
